@@ -1,0 +1,11 @@
+model Session {
+    id            String    @id @default(uuid())
+    user_id       String
+    refresh_token String    @db.VarChar(255)
+    expires_at    DateTime
+    revoked_at    DateTime?
+    created_at    DateTime  @default(now())
+    user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@index([user_id], map: "Session_user_id_fkey")
+}

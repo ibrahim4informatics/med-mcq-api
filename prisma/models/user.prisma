@@ -1,0 +1,22 @@
+enum UserRole {
+    STUDENT
+    ADMIN
+}
+
+model User {
+    id           String    @id @default(uuid())
+    first_name   String    @db.VarChar(35)
+    last_name    String    @db.VarChar(35)
+    phone_number String    @unique @db.VarChar(10)
+    email        String    @unique @db.VarChar(255)
+    password     String    @db.VarChar(255)
+    role         UserRole  @default(STUDENT)
+    created_at   DateTime  @default(now())
+    updated_at   DateTime  @updatedAt
+    deleted_at   DateTime?
+    // otps         Otp[]
+    otps         Otp[]
+    sessions     Session[]
+
+    @@index([email, phone_number])
+}

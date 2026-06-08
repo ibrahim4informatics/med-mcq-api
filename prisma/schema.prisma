@@ -9,54 +9,6 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-}
-
-enum UserRole {
-  STUDENT
-  ADMIN
-}
-
-model User {
-  id           String    @id @default(uuid())
-  first_name   String    @db.VarChar(35)
-  last_name    String    @db.VarChar(35)
-  phone_number String    @unique @db.VarChar(10)
-  email        String    @unique @db.VarChar(255)
-  password     String    @db.VarChar(255)
-  // subscriptions Subscription[]
-  role         UserRole  @default(STUDENT)
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-  otps         Otp[]
-  deleted_at   DateTime?
-
-  @@index([email, phone_number])
-}
-
-model Otp {
-  id         String   @id @default(uuid())
-  otp        String   @db.VarChar(6)
-  user_id    String
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  created_at DateTime @default(now())
-}
-
-model Faculty {
-  id         String    @id @default(uuid())
-  name       String    @db.VarChar(255)
-  years      Year[]
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
-}
-
-model Year {
-  id         String    @id @default(uuid())
-  name       String    @db.VarChar(255)
-  faculty_id String
-  faculty    Faculty   @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
+  provider     = "mysql"
+  relationMode = "foreignKeys"
 }

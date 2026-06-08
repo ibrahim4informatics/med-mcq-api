@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": "src",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2023",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    
+    // "ignoreDeprecations": "6.0"
   },
-  "exclude": ["prisma.config.ts"]
+  "exclude": [
+    "prisma.config.ts"
+  ]
 }

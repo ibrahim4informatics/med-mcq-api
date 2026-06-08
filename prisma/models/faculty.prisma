@@ -1,0 +1,20 @@
+model Faculty {
+    id         String    @id @default(uuid())
+    name       String    @db.VarChar(255)
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    deleted_at DateTime?
+    years      Year[]
+}
+
+model Year {
+    id         String    @id @default(uuid())
+    name       String    @db.VarChar(255)
+    faculty_id String
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    deleted_at DateTime?
+    faculty    Faculty   @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+
+    @@index([faculty_id], map: "Year_faculty_id_fkey")
+}

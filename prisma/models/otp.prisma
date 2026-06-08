@@ -1,0 +1,9 @@
+model Otp {
+  id         String   @id @default(uuid())
+  otp        String   @db.VarChar(6)
+  user_id    String
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "Otp_user_id_fkey")
+}
