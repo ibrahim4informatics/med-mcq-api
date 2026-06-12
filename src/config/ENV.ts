@@ -23,6 +23,16 @@ const ENV = {
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
     JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN,
     SESSION_SECRET: process.env.SESSION_SECRET,
+    JWT_RESET_PASSWORD_SECRET: process.env.JWT_RESET_PASSWORD_SECRET,
+    JWT_RESET_PASSWORD_EXPIRES_IN: process.env.JWT_RESET_PASSWORD_EXPIRES_IN,
+
+    // Mailer
+    MAILER_HOST: process.env.SMTP_HOST,
+    MAILER_PORT: process.env.SMTP_PORT,
+    MAILER_SECURE: process.env.SMTP_SECURE === "true",
+    MAILER_USER: process.env.SMTP_USER,
+    MAILER_PASSWORD: process.env.SMTP_PASS,
+    MAILER_FROM: process.env.SMTP_FROM,
 }
 
 export default ENV;

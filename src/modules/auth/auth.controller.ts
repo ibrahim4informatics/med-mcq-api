@@ -1,3 +1,5 @@
+import { logoutService, resetPasswordService, revokeSession, sendPasswordResetEmail, verifyPasswordResetOTPService } from "./auth.service";
+
 export const registerUserController = async (req: Request, res: Response) => {
     const newUser = await createUserService(req.body);
     res.status(201).json(newUser);
@@ -21,5 +23,33 @@ export const refreshTokenController = async (req: Request, res: Response) => {
     });
 }
 
+export const LogoutController = async (req: Request, res: Response) => {
+    const body = req.body as LogoutDto;
+    await logoutService(body);
+    return res.status(200).json({ message: "Successfully logged out" });
+};
+
+
+export const sendPasswordResetOTPController = async (req: Request, res: Response) => {
+    const data = req.body as SendPasswordResetEmailDto;
+    const { id } = await sendPasswordResetEmail(data);
+    return res.status(200).json({ message: "OTP sent to email", id });
+}
+
+
+export const verifyPasswordResetOTPController = async (req: Request, res: Response) => {
+    const data = req.body as VerifyPasswordResetOTPDto;
+    const { reset_token } = await verifyPasswordResetOTPService(data);
+    return res.status(200).json({ message: "OTP verified", reset_token });
+}
+
+
+export const resetPasswordController = async (req: Request, res: Response) => {
+    const data = req.body as ResetPasswordDto;
+    await resetPasswordService(data);
+    return res.status(200).json({ message: "Password reset successful" });
+}
+
 import { Request, Response } from "express";
 import { createUserService, loginUserService, refreshTokenService } from "./auth.service";
+import { LogoutDto, ResetPasswordDto, SendPasswordResetEmailDto, VerifyPasswordResetOTPDto } from "./auth.dto";
