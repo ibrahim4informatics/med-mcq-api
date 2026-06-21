@@ -8,7 +8,6 @@ import { hashToken } from "../../utils/hmacHasher";
 
 import { generate } from "otp-generator"
 import { sendEmail } from "../../shared/services/mailer.service";
-import { get } from "node:http";
 import { UnauthorizedError } from "../../shared/errors/unauthorized-error";
 import { ForbidenError } from "../../shared/errors/forbiden-error";
 import { NotFoundError } from "../../shared/errors/not-found-error";
@@ -94,17 +93,28 @@ export const generateOtp = () => {
     return otp;
 }
 
-export const checkUserExists = async (email: string) => {
-    const user = await prisma.user.findUnique({
+export const checkUserExists = async (email?: string, phone?: string) => {
+
+    const conditions = [];
+    if (email) conditions.push({ email });
+    if (phone) conditions.push({ phone_number: phone });
+
+
+
+    const user = await prisma.user.findFirst({
         where: {
-            email,
+            OR: conditions
         },
         select: {
-            id: true
+            email: true,
+            phone_number: true,
         }
     });
-    return !!user;
+
+
+    return user ? { email: user.email, phone_number: user.phone_number } : null;
 }
+
 
 
 export const createSession = async (user_id: string, refresh_token: string) => {
@@ -137,8 +147,9 @@ export const revokeSession = async (refresh_token: string) => {
 
 
 export const createUserService = async (registerUserDto: RegisterUsertDto) => {
-    const userExists = await checkUserExists(registerUserDto.email);
-    if (userExists) throw new BadRequestError("Email is taken");
+    const userExists = await checkUserExists(registerUserDto.email, registerUserDto.phone_number);
+    if (userExists && userExists.email === registerUserDto.email) throw new BadRequestError("Email is taken");
+    if (userExists && userExists.phone_number === registerUserDto.phone_number) throw new BadRequestError("Phone number is taken");
     const newUser = await prisma.user.create({
         data: {
             ...registerUserDto,
@@ -208,13 +219,13 @@ export const loginUserService = async (email: string, password: string) => {
     // 4. GENERATE TOKENS ONLY AFTER CHECK
     // --------------------------------------------------
     const access_token = generateToken(
-        { userId: user.id, role: user.role },
+        { user_id: user.id, role: user.role },
         ENV.JWT_SECRET!,
         ENV.JWT_EXPIRES_IN!
     );
 
     const refresh_token = generateToken(
-        { userId: user.id, role: user.role },
+        { user_id: user.id, role: user.role },
         ENV.JWT_REFRESH_SECRET!,
         ENV.JWT_REFRESH_EXPIRES_IN!
     );
@@ -222,6 +233,7 @@ export const loginUserService = async (email: string, password: string) => {
     // --------------------------------------------------
     // 5. HASH REFRESH TOKEN = SESSION ID
     // --------------------------------------------------
+
     const refresh_hash = hashToken(refresh_token);
 
 
@@ -241,6 +253,8 @@ export const loginUserService = async (email: string, password: string) => {
 
 
 export const refreshTokenService = async ({ refresh_token }: RefreshTokenDto) => {
+
+    if (!refresh_token) throw new UnauthorizedError("User is not logged in");
 
     // --------------------------------------------------
     // 1. HASH INCOMING TOKEN
@@ -299,6 +313,8 @@ export const refreshTokenService = async ({ refresh_token }: RefreshTokenDto) =>
 export const logoutService = async ({ refresh_token }: LogoutDto) => {
     const revokedSession = await revokeSession(hashToken(refresh_token));
     if (!revokedSession) throw new BadRequestError("Invalid refresh token");
+
+
 }
 
 
@@ -389,8 +405,8 @@ export const resetPasswordService = async ({ reset_token, new_password }: ResetP
             id: true,
         }
     });
-    if(!user) throw new NotFoundError("User not found");
-    
+    if (!user) throw new NotFoundError("User not found");
+
     await prisma.user.update({
         where: {
             id: user.id,
