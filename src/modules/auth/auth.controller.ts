@@ -39,27 +39,47 @@ export const LogoutController = async (req: Request, res: Response) => {
 
 export const sendPasswordResetOTPController = async (req: Request, res: Response) => {
     const data = req.body as SendPasswordResetEmailDto;
-    const { id } = await sendPasswordResetEmail(data);
-    return res.status(200).json({ message: "OTP sent to email", id });
+    const { otp_token } = await sendPasswordResetEmail(data);
+    res.cookie("otp_token", otp_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 10 * 60 * 1000, // 10 minutes
+    });
+    return res.status(200).json({ message: "OTP sent to email" });
 }
 
 
 export const verifyPasswordResetOTPController = async (req: Request, res: Response) => {
     const data = req.body as VerifyPasswordResetOTPDto;
     const { reset_token } = await verifyPasswordResetOTPService(data);
+
+    res.cookie("reset_token", reset_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 10 * 60 * 1000, // 10 minutes
+    });
+    res.clearCookie("otp_token");
     return res.status(200).json({ message: "OTP verified", reset_token });
 }
 
 
 export const resetPasswordController = async (req: Request, res: Response) => {
-    const data = req.body as ResetPasswordDto;
-    await resetPasswordService(data);
+    const new_password = req.body.new_password;
+    const reset_token = req.cookies["reset_token"];
+    await resetPasswordService({ new_password }, reset_token);
     return res.status(200).json({ message: "Password reset successful" });
 }
 
 
 export const userAuthenticationStatusController = async (req: Request, res: Response) => {
     return res.status(200).json({ authenticated: true });
+}
+
+export const getUserRoleController = async (req: Request, res: Response) => {
+    const user = req.user;
+    return res.status(200).json({ role: user?.role });
 }
 
 import { Request, Response } from "express";

@@ -4,7 +4,7 @@ import { BadRequestError } from "../../shared/errors/bad-request";
 import { hashPassword, verifyPassword } from "../../shared/services/argon.service";
 import ENV from "../../config/ENV";
 import { generateToken, verifyToken } from "../../shared/services/jwt.service";
-import { hashToken } from "../../utils/hmacHasher";
+import { hashOtp, hashToken } from "../../utils/hmacHasher";
 
 import { generate } from "otp-generator"
 import { sendEmail } from "../../shared/services/mailer.service";
@@ -314,7 +314,6 @@ export const logoutService = async ({ refresh_token }: LogoutDto) => {
     const revokedSession = await revokeSession(hashToken(refresh_token));
     if (!revokedSession) throw new BadRequestError("Invalid refresh token");
 
-
 }
 
 
@@ -333,7 +332,7 @@ export const sendPasswordResetEmail = async ({ email }: SendPasswordResetEmailDt
     const otpRecord = await prisma.otp.create({
         data: {
             user_id: user.id,
-            otp: hashToken(otp),
+            otp: hashOtp(otp),
             expires_at: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
         }
@@ -345,7 +344,10 @@ export const sendPasswordResetEmail = async ({ email }: SendPasswordResetEmailDt
     });
 
     if (!result) throw new BadRequestError("Failed to send OTP email");
-    return { result, id: otpRecord.id };
+
+    const otp_token = generateToken({ otp_id: otpRecord.id }, ENV.JWT_OTP_SECRET!, ENV.JWT_OTP_EXPIRES_IN!);
+
+    return { result, otp_token };
 }
 
 
@@ -368,7 +370,8 @@ export const verifyPasswordResetOTPService = async ({ otp_id, otp }: VerifyPassw
         throw new ForbidenError("Too many attempts. OTP has been expired.");
     }
 
-    const isOtpValid = hashToken(otp) === otpRecord.otp;
+    const isOtpValid = hashOtp(otp) === otpRecord.otp;
+
 
     if (!isOtpValid) {
         await prisma.otp.update({
@@ -379,7 +382,7 @@ export const verifyPasswordResetOTPService = async ({ otp_id, otp }: VerifyPassw
                 attempts: otpRecord.attempts + 1,
             }
         });
-        throw new UnauthorizedError("Invalid OTP");
+        throw new BadRequestError("Invalid OTP");
     }
 
     await prisma.otp.update({
@@ -394,7 +397,7 @@ export const verifyPasswordResetOTPService = async ({ otp_id, otp }: VerifyPassw
 }
 
 
-export const resetPasswordService = async ({ reset_token, new_password }: ResetPasswordDto) => {
+export const resetPasswordService = async ({ new_password }: ResetPasswordDto, reset_token: string) => {
     const payload = verifyToken<{ user_id: string }>(reset_token, ENV.JWT_RESET_PASSWORD_SECRET!);
     const user = await prisma.user.findUnique({
         where: {
@@ -407,12 +410,26 @@ export const resetPasswordService = async ({ reset_token, new_password }: ResetP
     });
     if (!user) throw new NotFoundError("User not found");
 
-    await prisma.user.update({
-        where: {
-            id: user.id,
-        },
-        data: {
-            password: await hashPassword(new_password),
-        }
+    const hashedPassword = await hashPassword(new_password);
+    prisma.$transaction(async (prisma) => {
+
+
+        await prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                password: hashedPassword,
+            }
+        });
+
+        await prisma.session.deleteMany({
+            where: {
+                user_id: user.id,
+            }
+        })
+
+
     });
 }
+

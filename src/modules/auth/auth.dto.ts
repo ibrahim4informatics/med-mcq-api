@@ -56,7 +56,6 @@ export type VerifyPasswordResetOTPDto = z.infer<typeof VerifyPasswordResetOTPDto
 
 
 export const ResetPasswordDto = z.object({
-    reset_token: z.jwt({ error: ({ input }) => !input ? "Reset token is required" : "Invalid reset token" }),
     new_password: z.string({ error: ({ input }) => !input ? "New password is required" : "New password must be a string" })
         .min(8, { error: "New password must be at least 8 characters long" }).max(20, { error: "New password must be at most 20 characters long" }).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { error: "New password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character" }),
 });
