@@ -140,7 +140,7 @@ export const revokeSession = async (refresh_token: string) => {
         }
     });
 
-    if (!revokeSession) throw new BadRequestError("Invalid refresh token");
+    if (!revokedSession) throw new BadRequestError("Invalid refresh token");
     return true;
 }
 
@@ -170,6 +170,7 @@ export const findUserByEmailService = async (email: string) => {
             email: true,
             password: true,
             role: true,
+            deleted_at: true,
         }
     });
     return user;
@@ -182,7 +183,7 @@ export const loginUserService = async (email: string, password: string) => {
     const user = await findUserByEmailService(email);
 
 
-    if (!user) {
+    if (!user || user.deleted_at) {
         throw new BadRequestError("Invalid email or password");
     }
 

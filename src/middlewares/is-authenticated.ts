@@ -7,7 +7,6 @@ import { UserRole } from "../generated/prisma/enums";
 export default (req: Request, res: Response, next: NextFunction) => {
 
     const accessToken = req.headers.authorization;
-    console.log("first")
     if (!accessToken) throw new UnauthorizedError("Authentication is required");
 
     try {

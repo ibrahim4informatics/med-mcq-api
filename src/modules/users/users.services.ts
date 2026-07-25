@@ -125,7 +125,7 @@ export const getUsersService = async ({ user_id, filter: { cursor, first_name, l
             email: email ? { equals: email } : undefined,
             deleted_at: status === 'inactive' ? { not: null } : status === 'active' ? null : undefined,
         },
-        take: limit + 1,
+        take: parseInt(limit.toString()) + 1,
         skip: cursor ? 1 : 0,
         cursor: cursor ? {
             id: cursor

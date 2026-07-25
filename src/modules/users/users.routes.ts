@@ -15,10 +15,6 @@ const router = Router();
 router.get("/", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), validateQuery(GetUSsersQuery), asyncHandler(getUsersController));
 
 
-router.get("/:user_id", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(getUserByIdController));
-router.patch("/:user_id", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(updateUserByIdController));
-router.delete("/:user_id", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(deleteUserController));
-router.patch("/:user_id/restore", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(restoreUserController));
 
 
 router.get("/profile", isAuthenticated, asyncHandler(getUserProfileController));
@@ -26,4 +22,10 @@ router.patch("/profile", isAuthenticated, asyncHandler(updateUserProfileControll
 router.delete("/profile", isAuthenticated, asyncHandler(deleteUserProfileController));
 router.patch("/profile/restore", isAuthenticated, bodyValidator(LoginUserDto), asyncHandler(restoreUserController));
 router.get("/profile/stats", isAuthenticated, asyncHandler(getUserStatsController));
+
+// Any route that has url params
+router.get("/:user_id", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(getUserByIdController));
+router.patch("/:user_id", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(updateUserByIdController));
+router.delete("/:user_id", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(deleteUserController));
+router.patch("/:user_id/restore", isAuthenticated, hasRoleOfMiddleware(["ADMIN"]), asyncHandler(restoreUserController));
 export default router;
