@@ -3,9 +3,9 @@ import { UserRole } from "../../generated/prisma/enums";
 import { BadRequestError } from "../../shared/errors/bad-request";
 import { NotFoundError } from "../../shared/errors/not-found-error";
 import { UnauthorizedError } from "../../shared/errors/unauthorized-error";
-import { verifyPassword } from "../../shared/services/argon.service";
+import { hashPassword, verifyPassword } from "../../shared/services/argon.service";
 import { LoginUserDto } from "../auth/auth.dto";
-import { GetUsersQuery, UpdateUserProfileDto } from "./users.dto";
+import { CreateUserDto, GetUsersQuery, UpdateUserProfileDto } from "./users.dto";
 
 /**
  * Account Management Services (PROFILE OWNERS)
@@ -208,4 +208,21 @@ export const restoreUserByIdService = async (user_id: string) => {
         }
     });
     return restored_user;
+}
+
+export const createUserService = async (data: CreateUserDto) => {
+    const userExists = await prisma.user.findUnique({
+        where: {
+            email: data.email,
+        }
+    });
+    if (userExists) throw new BadRequestError("User with this email already exists");
+
+    data.password = await hashPassword(data.password);
+    const user = await prisma.user.create({
+        data: {
+            ...data,
+        }
+    });
+    return user;
 }

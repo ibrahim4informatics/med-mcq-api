@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { GetUsersQuery, UpdateUserProfileDto } from "./users.dto";
-import { deleteUserProfileService, getUserProfileService, getUsersService, getUserStatsService, restoreUserByIdService, restoreUserProfileService, updateUserProfileService } from "./users.services";
+import { CreateUserDto, GetUsersQuery, UpdateUserProfileDto } from "./users.dto";
+import { createUserService, deleteUserProfileService, getUserProfileService, getUsersService, getUserStatsService, restoreUserByIdService, restoreUserProfileService, updateUserProfileService } from "./users.services";
 import { UserRole } from "../../generated/prisma/browser";
 import { LoginUserDto } from "../auth/auth.dto";
 
@@ -84,3 +84,8 @@ export const restoreUserController = async (req: Request, res: Response) => {
 }
 
 
+export const createUserController = async (req: Request, res: Response) => {
+    const data = req.body as CreateUserDto;
+    const user = await createUserService(data);
+    return res.status(201).json({ user });
+}
