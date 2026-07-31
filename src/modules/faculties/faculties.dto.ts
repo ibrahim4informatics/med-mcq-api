@@ -9,7 +9,7 @@ const CreateYearDto = z.object({
 
 export const CreateFacultyDto = z.object({
     name: z.string().min(1, { error: "Name is required" }),
-    years: z.array(CreateYearDto).optional(),
+    years: z.array(CreateYearDto.omit({ faculty_id: true })).optional(),
 
 });
 
