@@ -50,3 +50,30 @@ export const getAllFacultiesService = async (query: GetAllFacultiesQueryDto) => 
         next_cursor
     };
 }
+
+export const updateFacultyService = async (id: string, data: Partial<CreateFacultyDto>) => {
+    const faculty = await prisma.faculty.update({
+        where: { id },
+        data:{
+            name: data.name,
+        }
+    });
+    return faculty;
+}
+
+export const deleteFacultyService = async (id: string) => {
+    const faculty = await prisma.faculty.delete({
+        where: { id }
+    });
+    return faculty;
+}
+
+export const getFacultyByIdService = async (id: string) => {
+    const faculty = await prisma.faculty.findUnique({
+        where: { id },
+        include: {
+            years: true
+        }
+    });
+    return faculty;
+}
