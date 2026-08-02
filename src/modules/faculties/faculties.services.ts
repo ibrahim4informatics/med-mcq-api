@@ -1,4 +1,5 @@
 import prisma from "../../config/DB";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 import { CreateFacultyDto, GetAllFacultiesQueryDto } from "./faculties.dto";
 
 export const createfacultyService = async (data: CreateFacultyDto) => {
@@ -69,11 +70,13 @@ export const deleteFacultyService = async (id: string) => {
 }
 
 export const getFacultyByIdService = async (id: string) => {
+
     const faculty = await prisma.faculty.findUnique({
         where: { id },
         include: {
             years: true
         }
     });
+    if(!faculty) throw new NotFoundError("Faculty not found");
     return faculty;
 }
