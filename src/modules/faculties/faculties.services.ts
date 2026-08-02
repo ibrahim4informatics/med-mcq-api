@@ -1,4 +1,5 @@
 import prisma from "../../config/DB";
+import { BadRequestError } from "../../shared/errors/bad-request";
 import { NotFoundError } from "../../shared/errors/not-found-error";
 import { CreateFacultyDto, GetAllFacultiesQueryDto } from "./faculties.dto";
 
@@ -44,7 +45,7 @@ export const getAllFacultiesService = async (query: GetAllFacultiesQueryDto) => 
     }
     const next_cursor = has_more ? faculties[faculties.length - 1].id : null;
 
-     
+
     return {
         data: faculties,
         has_more,
@@ -55,7 +56,7 @@ export const getAllFacultiesService = async (query: GetAllFacultiesQueryDto) => 
 export const updateFacultyService = async (id: string, data: Partial<CreateFacultyDto>) => {
     const faculty = await prisma.faculty.update({
         where: { id },
-        data:{
+        data: {
             name: data.name,
         }
     });
@@ -63,10 +64,33 @@ export const updateFacultyService = async (id: string, data: Partial<CreateFacul
 }
 
 export const deleteFacultyService = async (id: string) => {
-    const faculty = await prisma.faculty.delete({
-        where: { id }
+    const faculty = await prisma.faculty.findUnique({
+        where: { id },
     });
-    return faculty;
+    if (!faculty) throw new NotFoundError("Faculty not found");
+    if (faculty.deleted_at) throw new BadRequestError("Faculty already deleted");
+    const deleted_faculty = await prisma.faculty.update({
+        where: { id },
+        data: {
+            deleted_at: new Date()
+        }
+    });
+    return deleted_faculty;
+}
+
+export const restoreFacultyService = async (id: string) => {
+    const faculty = await prisma.faculty.findUnique({
+        where: { id },
+    });
+    if (!faculty || !faculty.deleted_at) throw new NotFoundError("Faculty not found");
+
+    const restoredFaculty = await prisma.faculty.update({
+        where: { id },
+        data: {
+            deleted_at: null
+        }
+    });
+    return restoredFaculty;
 }
 
 export const getFacultyByIdService = async (id: string) => {
@@ -77,6 +101,6 @@ export const getFacultyByIdService = async (id: string) => {
             years: true
         }
     });
-    if(!faculty) throw new NotFoundError("Faculty not found");
+    if (!faculty) throw new NotFoundError("Faculty not found");
     return faculty;
 }

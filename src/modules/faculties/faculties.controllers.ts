@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { CreateFacultyDto, GetAllFacultiesQueryDto } from "./faculties.dto";
-import { createfacultyService, deleteFacultyService, getAllFacultiesService, getFacultyByIdService, updateFacultyService } from "./faculties.services";
+import { createfacultyService, deleteFacultyService, getAllFacultiesService, getFacultyByIdService, restoreFacultyService, updateFacultyService } from "./faculties.services";
 
 export const createFacultyController = async (req: Request, res: Response) => {
     const data = req.body as CreateFacultyDto;
@@ -34,4 +34,10 @@ export const getFacultyByIdController = async (req: Request, res: Response) => {
     const { id } = req.params;
     const faculty = await getFacultyByIdService(id as string);
     return res.status(200).json(faculty);
+}
+
+export const restoreFacultyController = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const restoredFaculty = await restoreFacultyService(id as string);
+    return res.status(200).json(restoredFaculty);
 }
