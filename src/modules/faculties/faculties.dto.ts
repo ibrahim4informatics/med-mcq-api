@@ -3,6 +3,7 @@ import { z } from "zod";
 // Todo Later add the year dto from the year module and add it here as a foreign key
 
 const CreateYearDto = z.object({
+    id:z.uuid().optional(),
     name: z.string().min(1, { error: "Name is required" }),
     faculty_id: z.uuid({ error: ({ input }) => !input ? "Faculty ID is required" : "Faculty ID must be a valid UUID" }),
 })

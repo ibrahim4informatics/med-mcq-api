@@ -9,7 +9,7 @@ export const createfacultyService = async (data: CreateFacultyDto) => {
         data: {
             name: data.name,
             years: data.years ? {
-                create: data.years
+                create: data.years.map(year => ({ name: year.name }))
             } : undefined
         }
     });
@@ -54,12 +54,33 @@ export const getAllFacultiesService = async (query: GetAllFacultiesQueryDto) => 
 }
 
 export const updateFacultyService = async (id: string, data: Partial<CreateFacultyDto>) => {
+    const facultyExists = await prisma.faculty.findUnique({
+        where: { id },
+    });
+    if (!facultyExists) throw new NotFoundError("Faculty not found");
+    if (facultyExists.deleted_at) throw new BadRequestError("Faculty is deleted, cannot update");
+
+    const existingYears = data.years && data.years?.filter(y => y.id);
+    const newYears = data.years && data.years?.filter(y => !y.id);
     const faculty = await prisma.faculty.update({
         where: { id },
         data: {
             name: data.name,
+            years: {
+                update: existingYears ? existingYears.map(y => ({ where: { id: y.id }, data: y })) : undefined,
+                createMany: newYears ? { data: newYears.map(y => ({ name: y.name })) } : undefined
+            }
+
+        },
+
+        include: {
+            _count: {
+                select: {
+                    years: true
+                }
+            }
         }
-    });
+    })
     return faculty;
 }
 
@@ -103,4 +124,35 @@ export const getFacultyByIdService = async (id: string) => {
     });
     if (!faculty) throw new NotFoundError("Faculty not found");
     return faculty;
+}
+
+
+export const deleteRelatedYearService = async (faculty_id: string, year_id: string) => {
+    const year = await prisma.year.findUnique({
+        where: { id: year_id },
+    });
+    if (!year || year.deleted_at) throw new NotFoundError("Year not found");
+    if (year.faculty_id !== faculty_id) throw new BadRequestError("Year does not belong to the specified faculty");
+    const deleted_year = await prisma.year.update({
+        where: { id: year_id },
+        data: {
+            deleted_at: new Date()
+        }
+    });
+    return deleted_year;
+}
+
+export const restoreRelatedYearService = async (faculty_id: string, year_id: string) => {
+    const year = await prisma.year.findUnique({
+        where: { id: year_id },
+    });
+    if (!year || !year.deleted_at) throw new NotFoundError("Year not found");
+    if (year.faculty_id !== faculty_id) throw new BadRequestError("Year does not belong to the specified faculty");
+    const restored_year = await prisma.year.update({
+        where: { id: year_id },
+        data: {
+            deleted_at: null
+        }
+    });
+    return restored_year;
 }

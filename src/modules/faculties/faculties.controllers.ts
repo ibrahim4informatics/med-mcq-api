@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { CreateFacultyDto, GetAllFacultiesQueryDto } from "./faculties.dto";
-import { createfacultyService, deleteFacultyService, getAllFacultiesService, getFacultyByIdService, restoreFacultyService, updateFacultyService } from "./faculties.services";
+import { createfacultyService, deleteFacultyService, deleteRelatedYearService, getAllFacultiesService, getFacultyByIdService, restoreFacultyService, restoreRelatedYearService, updateFacultyService } from "./faculties.services";
 
 export const createFacultyController = async (req: Request, res: Response) => {
     const data = req.body as CreateFacultyDto;
@@ -40,4 +40,17 @@ export const restoreFacultyController = async (req: Request, res: Response) => {
     const { id } = req.params;
     const restoredFaculty = await restoreFacultyService(id as string);
     return res.status(200).json(restoredFaculty);
+}
+
+
+export const deleteRelatedYearController = async (req: Request, res: Response) => {
+    const { faculty_id, year_id } = req.params;
+    const deletedYear = await deleteRelatedYearService(faculty_id as string, year_id as string);
+    return res.status(200).json(deletedYear);
+}
+
+export const restoreRelatedYearController = async (req: Request, res: Response) => {
+    const { faculty_id, year_id } = req.params;
+    const restoredYear = await restoreRelatedYearService(faculty_id as string, year_id as string);
+    return res.status(200).json(restoredYear);
 }
