@@ -10,11 +10,11 @@ model Faculty {
 model Year {
   id         String    @id @default(uuid())
   name       String    @db.VarChar(255)
+  modules    Module[]
   faculty_id String
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
   faculty    Faculty   @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
-
   @@index([faculty_id], map: "Year_faculty_id_fkey")
 }
