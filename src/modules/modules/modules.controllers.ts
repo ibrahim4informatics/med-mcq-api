@@ -18,7 +18,8 @@ export const getAllModulesController = async (req:Request, res:Response)=>{
 
 export const getModuleByIdController = async (req:Request, res:Response)=>{
     const {id} = req.params as { id: string };
-    const module = await getModuleByIdService(id);
+    const role = req.user?.role || "STUDENT"; // Assuming you have user info in req.user
+    const module = await getModuleByIdService(id, role);
     return res.status(200).json(module);
 }
 

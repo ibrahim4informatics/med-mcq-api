@@ -71,9 +71,9 @@ export const getAllModulesService = async (
   };
 };
 
-export const getModuleByIdService = async (id: string) => {
+export const getModuleByIdService = async (id: string, role:string) => {
   const module = await prisma.module.findUnique({
-    where: { id, deleted_at: null },
+    where: { id, deleted_at: role === "ADMIN" ? undefined : null },
     include: {
       chapters: true,
       year: {
