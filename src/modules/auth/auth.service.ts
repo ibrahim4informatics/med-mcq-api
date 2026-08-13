@@ -295,8 +295,21 @@ export const refreshTokenService = async ({ refresh_token }: RefreshTokenDto) =>
     // 5. GENERATE NEW ACCESS TOKEN
     // --------------------------------------------------
 
+    const user = await prisma.user.findUnique({
+        where: {
+            id: payload.user_id,
+        },
+        select: {
+            id: true,
+            role: true,
+            deleted_at: true,
+        }
+    });
+
+    if (!user || user.deleted_at) throw new BadRequestError("User not found");
+
     const new_access_token = generateToken(
-        { user_id: payload.user_id, role: payload.role },
+        { user_id: user.id, role: user.role },
         ENV.JWT_SECRET!,
         ENV.JWT_EXPIRES_IN!
     );
