@@ -19,11 +19,13 @@ model Chapter {
     title      String    @db.VarChar(255)
     module     Module    @relation(fields: [module_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
     // questions Question[]
+    order      Int
     module_id  String
     created_at DateTime  @default(now())
     updated_at DateTime  @updatedAt
     deleted_at DateTime?
 
     @@unique([title, module_id])
+    @@unique([order, module_id])
     @@index([module_id])
 }

@@ -10,6 +10,7 @@ export const createModuleDto = z.object({
     .array(
       z.object({
         title: z.string().min(1, "Title is required"),
+        order:z.number().int()
       }),
     )
     .optional(),
@@ -39,6 +40,7 @@ export const updateModuleDto = z.object({
       z.object({
         id: z.number().optional(),
         title: z.string().min(1, "Title is required"),
+        order:z.number().int()
       }),
     )
     .optional(),

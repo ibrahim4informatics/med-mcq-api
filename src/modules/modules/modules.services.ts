@@ -53,6 +53,12 @@ export const getAllModulesService = async (
         select: {
           id: true,
           name: true,
+          faculty:{
+            select:{
+                id:true,
+                name:true
+            }
+          }
         },
       },
     },
@@ -109,7 +115,7 @@ export const updateModuleService = async (
             }))
           : undefined,
         createMany: newChapters
-          ? { data: newChapters.map((chapter) => ({ title: chapter.title })) }
+          ? { data: newChapters.map((chapter) => ({ title: chapter.title , order:chapter.order})) }
           : undefined,
       },
     },
